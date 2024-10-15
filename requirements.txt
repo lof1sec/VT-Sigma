@@ -1,0 +1,4 @@
+colorist
+argparse
+pysigma
+pysigma-backend-kusto
