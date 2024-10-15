@@ -53,9 +53,9 @@ def sigma_kusto():
                 f.write('\n')
                 f.write('\n')
                 f.close()
-                print(f'{Color.GREEN}[+]{Color.OFF} Exporting Kusto queries... {Color.YELLOW}"{sigma_title}"{Color.OFF}')
+                print(f'{Color.GREEN}[+]{Color.OFF} Exporting Kusto query... {Color.YELLOW}"{sigma_title}"{Color.OFF}')
             except sigma.exceptions.SigmaTransformationError:
-                print(f'{Color.RED}[!]{Color.OFF} Error exporting Kusto queries... "SigmaTransformationError" {Color.YELLOW}"{sigma_title}"{Color.OFF}')
+                print(f'{Color.RED}[!]{Color.OFF} Error exporting Kusto query... "SigmaTransformationError" {Color.YELLOW}"{sigma_title}"{Color.OFF}')
     sys.exit(0)
 
 # Extracting hash results from VT
