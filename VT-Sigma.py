@@ -74,7 +74,7 @@ def analysis(*args):
     f = open(file_path, "w")
     f.write(r.text)
     f.close()
-    print(f'{Color.GREEN}[+]{Color.OFF} Extracting Hash results "{ioc}"')
+    print(f'{Color.GREEN}[+]{Color.OFF} Exporting Hash results "{ioc}"')
     return r.text
 
 # Sigma rule identification
