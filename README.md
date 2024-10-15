@@ -10,6 +10,7 @@ Required Libraries:
 Usage:
 `python .\VT-Sigma.py -H <SHA-256|SHA-1|MD5>`
 
+---
 Example:
 ```
 PS C:\> python .\VT-Sigma.py -H d9a8c4fc94655f47a127b45c71e426d0f2057b6faf78fb7b86ee2995f7def41d
