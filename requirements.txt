@@ -2,3 +2,4 @@ colorist
 argparse
 pysigma
 pysigma-backend-kusto
+pysigma-backend-crowdstrike
