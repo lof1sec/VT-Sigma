@@ -1,14 +1,15 @@
 # VT-Sigma
-Retrieves crowdsourced Sigma rules for hash detection from VirusTotal and converts them into Kusto queries.
+Retrieves crowdsourced Sigma rules for hash detection from VirusTotal and converts them into Kusto (KQL) or Crowdstrike (CQL - Logscale) queries.
 
 Required Libraries:
 - colorist
 - argparse
 - pysigma
 - pysigma-backend-kusto
+- pysigma-backend-crowdstrike
 
 Usage:
-`python .\VT-Sigma.py -H <SHA-256|SHA-1|MD5>`
+`python .\VT-Sigma.py -H <SHA-256|SHA-1|MD5> -D "FolderName" -Q {all, kusto, crowdstrike}`
 
 ---
 Example:
