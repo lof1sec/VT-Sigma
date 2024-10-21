@@ -3,6 +3,8 @@ from colorist import Color, BrightColor
 from sigma.rule import SigmaRule
 from sigma.backends.kusto import KustoBackend
 from sigma.pipelines.microsoftxdr import microsoft_xdr_pipeline
+from sigma.backends.crowdstrike import LogScaleBackend
+from sigma.pipelines.crowdstrike import crowdstrike_falcon_pipeline
 
 # JLC - 2024
 # Virustotal API token
@@ -12,13 +14,17 @@ token = "API Token Here"
 # Script arguments and variables
 parser = argparse.ArgumentParser("python VT.py")
 parser.add_argument("--hash","-H", required=True, type=str,  help="SHA-256, SHA-1 or MD5 identifying the file", metavar="HASH")
+parser.add_argument("--dirname","-D", required=True, type=str,  help="A folder created by the script to store hash analysis, rules, and behavior data.", metavar="FOLDER")
+parser.add_argument("--query","-Q", choices=["all", "kusto", "crowdstrike"], required=True, help='Choose one of the following query transformation: all, kusto, or crowdstrike')
 args = parser.parse_args()
 ioc = args.hash
+folder = args.dirname
+sigma_query = args.query
 url =  "https://www.virustotal.com/api/v3/"
 headers = {"accept": "application/json","x-apikey": token}
-directory = f'{ioc}'
-directory_sigma = f'{ioc}/sigma'
-directory_kusto = f'{ioc}/kusto'
+directory = f'{folder}'
+directory_sigma = f'{directory}/sigma'
+directory_kusto = f'{directory}/querys'
 
 # Hash type validation
 def hash_validator(*args):
@@ -54,9 +60,33 @@ def sigma_kusto():
                 f.write('\n')
                 f.close()
                 print(f'{Color.GREEN}[+]{Color.OFF} Exporting Kusto query... {Color.YELLOW}"{sigma_title}"{Color.OFF}')
-            except sigma.exceptions.SigmaTransformationError:
-                print(f'{Color.RED}[!]{Color.OFF} Error exporting Kusto query... "SigmaTransformationError" {Color.YELLOW}"{sigma_title}"{Color.OFF}')
-    sys.exit(0)
+            except Exception as sigma_error:
+                print(f'{Color.RED}[!]{Color.OFF} Error exporting Kusto query... {Color.YELLOW}"{sigma_title}"{Color.OFF}, {Color.RED}Error:{Color.OFF}"{sigma_error}"')
+
+# Sigma rule to CQL (crowdstrike) query transformation
+def sigma_crwd():
+    yml_list = os.listdir(directory_sigma)
+    os.makedirs(directory_kusto, exist_ok=True)
+    for rules in yml_list:
+        with open(directory_sigma + '/' + rules, 'r') as file:
+            data = file.read()
+            sigma_name = re.search("title: (.+)", data)
+            sigma_title = sigma_name.group(1)
+            rule = SigmaRule.from_yaml(data)
+            crowd_pipeline = crowdstrike_falcon_pipeline()
+            backend_crwd = LogScaleBackend(processing_pipeline=crowd_pipeline)
+            try:
+                file_path = os.path.join(directory_kusto, 'crowdstrike.cql')
+                backend_crwd.convert_rule(rule)[0]
+                f = open(file_path, "a")
+                f.write(f'//CQL query: {sigma_title}\n')
+                f.write(backend_crwd.convert_rule(rule)[0])
+                f.write('\n')
+                f.write('\n')
+                f.close()
+                print(f'{Color.GREEN}[+]{Color.OFF} Exporting CQL(Crowdstrike) query... {Color.YELLOW}"{sigma_title}"{Color.OFF}')
+            except Exception as sigma_error:
+                print(f'{Color.RED}[!]{Color.OFF} Error exporting CQL(Crowdstrike) query... {Color.YELLOW}"{sigma_title}"{Color.OFF}, {Color.RED}Error:{Color.OFF}"{sigma_error}"')
 
 # Extracting hash results from VT
 def analysis(*args):
@@ -68,7 +98,7 @@ def analysis(*args):
     except KeyError:
         print(f'{Color.RED}[!]{Color.OFF} Hash not found in Virustotal')
         sys.exit(1)
-    filename = "Analysis.json"
+    filename = f'Analysis-{ioc}.json'
     file_path = os.path.join(directory, filename)
     os.makedirs(directory, exist_ok=True)
     f = open(file_path, "w")
@@ -80,10 +110,10 @@ def analysis(*args):
 # Sigma rule identification
 def sigma_summary(sigma):
     sigma = json.loads(sigma)
-    if "sigma_analysis_results" in sigma["data"]["attributes"]:
+    try:
         sigma_len = len(sigma["data"]["attributes"]["sigma_analysis_results"])
         print(f'{Color.GREEN}[+]{Color.OFF} Sigma rules found: {sigma_len}')
-    else:
+    except Exception:
         print(f'{Color.RED}[!]{Color.OFF} Sigma rules found: 0')
         sys.exit(1)
 
@@ -113,7 +143,7 @@ def sigma_extract(sigma):
 def behaviour(*args):
     urlb = url + "files/" + ioc + "/behaviour_summary"
     r = requests.get(urlb, headers=headers)
-    filename = "Behaviour.json"
+    filename = f'Behaviour-{ioc}.json'
     file_path = os.path.join(directory, filename)
     f = open(file_path, "w")
     f.write(r.text)
@@ -127,7 +157,16 @@ def main():
     behaviour(ioc)
     sigma_summary(sigma)
     sigma_extract(sigma)
-    sigma_kusto()
+    if sigma_query == "all":
+        sigma_kusto()
+        sigma_crwd()
+        sys.exit(0)
+    elif sigma_query == "kusto":
+        sigma_kusto()
+        sys.exit(0)
+    elif sigma_query == "crowdstrike":
+        sigma_crwd()
+        sys.exit(0)
 
 if __name__ == '__main__':
 	main()
