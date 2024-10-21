@@ -8,6 +8,9 @@ Required Libraries:
 - pysigma-backend-kusto
 - pysigma-backend-crowdstrike
 
+Required API:
+- Virustotal API Token (standard free end-user account)
+
 Usage:
 `python .\VT-Sigma.py -H <SHA-256|SHA-1|MD5> -D "FolderName" -Q {all, kusto, crowdstrike}`
 
