@@ -16,7 +16,7 @@ Usage:
 
 ---
 Example:
-```
+```bash
 PS C:\> python .\VT-Sigma.py -H 5ed6eb40580f8a5e3983936c51a00ae8f6081c63ce62ac84abb269da7b5fe01e -D "Generic-Malware-5" -Q all
 [+] Valid SHA-256 hash
 [+] Exporting Hash results "5ed6eb40580f8a5e3983936c51a00ae8f6081c63ce62ac84abb269da7b5fe01e"
@@ -39,7 +39,7 @@ PS C:\> python .\VT-Sigma.py -H 5ed6eb40580f8a5e3983936c51a00ae8f6081c63ce62ac84
 [+] Exporting CQL(Crowdstrike) query... "Wow6432Node CurrentVersion Autorun Keys Modification"
 ```
 Sigma Rule:
-```
+```xml
 title: Potential Raspberry Robin Registry Set Internet Settings ZoneMap
 id: 16a4c7b3-4681-49d0-8d58-3e9b796dcb43
 status: experimental
